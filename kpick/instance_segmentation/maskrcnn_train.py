@@ -1,0 +1,1 @@
+from detectron2.data.datasets import register_coco
