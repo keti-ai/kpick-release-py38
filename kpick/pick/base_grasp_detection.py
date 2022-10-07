@@ -48,7 +48,7 @@ class BaseGraspDetector(RoiCifarClassfier):
 
     def get_fg_depth_inds(self, rgbd, locs, net_args):
         # zlocs = list(range(len(locs[0])))
-        if hasattr(self, 'bg_depth'):
+        try:
             depth_blur = cv2.blur(rgbd.depth, ksize=net_args.depth_blur_ksize)
 
             Zb = depth_blur[locs].reshape((-1, 1)).astype('float')
@@ -57,28 +57,30 @@ class BaseGraspDetector(RoiCifarClassfier):
             zlocs = np.where((np.abs(Zb - Zbg) > net_args.bg_depth_diff) & (Zb>0) & (Zbg>0))[0].tolist()
             num_grasp = len(zlocs)
             print(f'{num_grasp} candidates: depth different > {net_args.bg_depth_diff}')
-        else:
-            # if not hasattr(self, 'corner_depth_map'): self.get_workspace_corner_depth(rgbd)
-            reference_depth_map = self.get_workspace_corner_depth(rgbd)
-            # reference_depth_map = np.array(self.args.reference_depth_map)
-            num_grasp, num_corner = len(locs[0]), len(reference_depth_map)
-            corner_loc_map = ArrayUtils().repmat(reference_depth_map[:, :2], (1, 1, num_grasp))
-            suc_loc_map = ArrayUtils().repmat(
-                np.concatenate((locs[1].reshape(1, 1, -1), locs[0].reshape(1, 1, -1)), axis=1),
-                (num_corner, 1, 1)).astype('float')
-            dmap = corner_loc_map - suc_loc_map
-            dmap = np.linalg.norm(dmap, axis=1)
-            inv_dmap = np.max(dmap) - dmap
-            dsum = ArrayUtils().repmat(np.sum(inv_dmap, axis=0).reshape((1, -1)), (num_corner, 1)) + 0.00001
-            W = np.divide(inv_dmap, dsum)
-            ZZ = np.multiply(W, ArrayUtils().repmat(reference_depth_map[:, -1].reshape((-1, 1)), (1, num_grasp)))
-            ZZ = np.sum(ZZ, axis=0).reshape((-1, 1))
+        except:
+            zlocs = list(range(len(locs[0])))
 
-            depth_blur = cv2.blur(rgbd.depth, ksize=net_args.depth_blur_ksize)
-            Zb = depth_blur[locs].reshape((-1, 1)).astype('float')
-            zlocs = np.where(np.abs(Zb - ZZ) > net_args.bg_depth_diff)[0].tolist()
-            num_grasp = len(zlocs)
-            print(f'{num_grasp} candidates: depth different > {net_args.bg_depth_diff}')
+            # # if not hasattr(self, 'corner_depth_map'): self.get_workspace_corner_depth(rgbd)
+            # reference_depth_map = self.get_workspace_corner_depth(rgbd)
+            # # reference_depth_map = np.array(self.args.reference_depth_map)
+            # num_grasp, num_corner = len(locs[0]), len(reference_depth_map)
+            # corner_loc_map = ArrayUtils().repmat(reference_depth_map[:, :2], (1, 1, num_grasp))
+            # suc_loc_map = ArrayUtils().repmat(
+            #     np.concatenate((locs[1].reshape(1, 1, -1), locs[0].reshape(1, 1, -1)), axis=1),
+            #     (num_corner, 1, 1)).astype('float')
+            # dmap = corner_loc_map - suc_loc_map
+            # dmap = np.linalg.norm(dmap, axis=1)
+            # inv_dmap = np.max(dmap) - dmap
+            # dsum = ArrayUtils().repmat(np.sum(inv_dmap, axis=0).reshape((1, -1)), (num_corner, 1)) + 0.00001
+            # W = np.divide(inv_dmap, dsum)
+            # ZZ = np.multiply(W, ArrayUtils().repmat(reference_depth_map[:, -1].reshape((-1, 1)), (1, num_grasp)))
+            # ZZ = np.sum(ZZ, axis=0).reshape((-1, 1))
+            #
+            # depth_blur = cv2.blur(rgbd.depth, ksize=net_args.depth_blur_ksize)
+            # Zb = depth_blur[locs].reshape((-1, 1)).astype('float')
+            # zlocs = np.where(np.abs(Zb - ZZ) > net_args.bg_depth_diff)[0].tolist()
+            # num_grasp = len(zlocs)
+            # print(f'{num_grasp} candidates: depth different > {net_args.bg_depth_diff}')
         return zlocs
 
     def get_high_score_inds(self, Score, thresh):
