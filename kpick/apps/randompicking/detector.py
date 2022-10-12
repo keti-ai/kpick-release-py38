@@ -26,7 +26,8 @@ def create_and_load_random_picking_detector(Detector=None, cfg_path=None, detect
     KPICK_DIR = os.path.split(kpick.__file__)[0]
 
     detector_types = ['grip', 'suction', 'one_point_dual', 'two_points_dual']
-    funcs = [get_grip_detector_obj, get_suction_detector_obj, get_multimode_grasp_detector_obj, get_multimode_grasp_detector_obj]
+    funcs = [get_grip_detector_obj, get_suction_detector_obj, get_multimode_grasp_detector_obj,
+             get_multimode_grasp_detector_obj]
     Detectors = [GripDetector, SuctionDetector, OnePointDualGraspDetector, TwoPointsDualGraspDetector]
     cfg_dir = os.path.join(KPICK_DIR, 'apps/randompicking/configs')
     cfg_paths = [os.path.join(cfg_dir, 'grip.cfg'), os.path.join(cfg_dir, 'suction.cfg'),
@@ -46,7 +47,6 @@ def demo_random_picking_simple():
     from ketisdk.vision.utils.rgbd_utils_v2 import RGBD
     import kpick
     KPICK_DIR = os.path.split(kpick.__file__)[0]
-
 
     # load image
     rgb = cv2.imread(os.path.join(KPICK_DIR, 'apps/randompicking/test_images/01_rgb.png'))[:, :, ::-1]
@@ -69,7 +69,7 @@ def demo_random_picking_simple():
     detector = create_and_load_random_picking_detector(detector_type='suction')
     detector.args.flag.show_steps = True
     ret = detector.detect_and_show_suctions(rgbd=rgbd, net_args=detector.args.suction_net, args=detector.args,
-                                         remove_bg=detector.args.suction_net.remove_bg, rpn_args=detector.args.rpn)
+                                            remove_bg=detector.args.suction_net.remove_bg, rpn_args=detector.args.rpn)
 
     # show
     cv2.imshow('suction', ret['im'][:, :, ::-1])
@@ -102,15 +102,23 @@ if __name__ == '__main__':
     # demo_random_picking_simple()
     # demo_grip_gui(Detector=RandomGripDetector, cfg_path='kpick/apps/randompicking/configs/grip.cfg',
     #               default_cfg_path='kpick/apps/randompicking/configs/default.cfg')
-    # demo_suction_gui(DetectorGui=get_suction_detector_gui(get_suction_detector_obj(RandomSuctionDetector)),
-    #                  cfg_path='kpick/apps/randompicking/configs/suction.cfg',
-    #                  default_cfg_path='kpick/apps/randompicking/configs/default.cfg')
-    # demo_multimode_grasp_gui(DetectorGui=get_multimode_predictgrasp_detector_gui(get_multimode_grasp_detector_obj(OnePointDualGraspDetector)),
-    #                  cfg_path='kpick/apps/randompicking/configs/one_point_dual.cfg',
-    #                  default_cfg_path='kpick/apps/randompicking/configs/default.cfg')
+    # demo_suction_gui(
+    #     DetectorGui=get_suction_detector_gui(get_suction_detector_obj(RandomSuctionDetector)),
+    #     cfg_path='kpick/apps/randompicking/configs/suction.cfg',
+    #     default_cfg_path='kpick/apps/randompicking/configs/default.cfg',
+    #     data_root='data/apps/randompicking', rgb_formats=['*/rgb/*'], depth_formats=['*/depth/*']
+    # )
     # demo_multimode_grasp_gui(
     #     DetectorGui=get_multimode_grasp_detector_gui(get_multimode_grasp_detector_obj(OnePointDualGraspDetector)),
-    #     cfg_path='kpick/apps/randompicking/configs/two_point_dual.cfg',
-    #     default_cfg_path='kpick/apps/randompicking/configs/default.cfg')
+    #     cfg_path='kpick/apps/randompicking/configs/one_point_dual.cfg',
+    #     default_cfg_path='kpick/apps/randompicking/configs/default.cfg',
+    #     data_root='data/apps/randompicking', rgb_formats=['*/rgb/*'], depth_formats=['*/depth/*']
+    # )
+    # demo_multimode_grasp_gui(
+    #     DetectorGui=get_multimode_grasp_detector_gui(get_multimode_grasp_detector_obj(TwoPointsDualGraspDetector)),
+    #     cfg_path='kpick/apps/randompicking/configs/two_points_dual.cfg',
+    #     default_cfg_path='kpick/apps/randompicking/configs/default.cfg',
+    #     data_root='data/apps/randompicking', rgb_formats=['*/rgb/*'], depth_formats=['*/depth/*']
+    # )
 
     demo_random_picking_simple()

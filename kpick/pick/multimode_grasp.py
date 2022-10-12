@@ -72,7 +72,7 @@ class MultiModeGraspDetector(GripDetector, SuctionPointsDetector, InnerGripDetec
             for n, s in zip(grasp_names, grasp_scores):
                 ss += f'{n}:{s:.2f}_'
             left, top = rgbd.workspace.bbox[:2]
-            cv2.putText(out, ss[:-1], (left, top - 30), cv2.FONT_HERSHEY_COMPLEX, args.disp.text_scale, (0, 0, 255),
+            cv2.putText(out, ss[:-1], (left, top), cv2.FONT_HERSHEY_COMPLEX, args.disp.text_scale, (0, 0, 255),
                         args.disp.text_thick)
 
         # print(f'{target_grasp_name}: {float(target_grasp.flatten()[-1]):>.3f}')
@@ -127,7 +127,8 @@ def get_multimode_grasp_detector_gui(DetectorObj=get_multimode_grasp_detector_ob
     return MultiModeGraspDetectorGui
 
 
-def demo_multimode_grasp_gui(cfg_path=None, default_cfg_path=None, DetectorGui=get_multimode_grasp_detector_gui()):
+def demo_multimode_grasp_gui(cfg_path=None, default_cfg_path=None, DetectorGui=get_multimode_grasp_detector_gui(),
+                             data_root=None, rgb_formats=None, depth_formats=None):
     from ketisdk.sensor.realsense_sensor import get_realsense_modules
     from ketisdk.gui.gui import GUI, GuiModule
 
@@ -145,6 +146,7 @@ def demo_multimode_grasp_gui(cfg_path=None, default_cfg_path=None, DetectorGui=g
 
     GUI(title='Grip + Suction Detection GUI',
         modules=[detect_module, ] + get_realsense_modules(),
+        data_root=data_root, rgb_formats=rgb_formats, depth_formats=depth_formats
         )
 
 

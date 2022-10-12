@@ -59,6 +59,7 @@ class BaseGraspDetector(RoiCifarClassfier):
             print(f'{num_grasp} candidates: depth different > {net_args.bg_depth_diff}')
         except:
             zlocs = list(range(len(locs[0])))
+            print('cannot remove grasp on background.')
 
             # # if not hasattr(self, 'corner_depth_map'): self.get_workspace_corner_depth(rgbd)
             # reference_depth_map = self.get_workspace_corner_depth(rgbd)

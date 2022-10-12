@@ -401,9 +401,6 @@ class CocoUtils():
         train_ann_dict_list = [self.annotation_dict_list[i] for i in train_ann_inds]
         val_ann_dict_list = [self.annotation_dict_list[i] for i in val_ann_inds]
 
-
-
-
         # save
         self.save(ann_path=self.ann_path.replace('.json', '_train.json'), images=train_im_dict_list,
                   annotations=train_ann_dict_list, categories=self.categories)
@@ -563,6 +560,55 @@ class CocoUtils():
                 # anns.append([out, mask_outs, category_ids_out])
         # return anns
 
+    def replace_background(self, im_dir, background_im, select_im_inds=None, div=(2,1)):
+        # get annotations
+        if select_im_inds is None: select_im_inds = np.arange(len(self.image_dict_list))
+
+        mix_im_inds = np.array(select_im_inds.tolist() + (select_im_inds+1).tolist())
+
+
+        train_im_inds = np.random.choice(mix_im_inds, int(len(mix_im_inds) * div[0] / (div[0] + div[1])), replace=False)
+        val_im_inds = np.setxor1d(mix_im_inds, train_im_inds)
+
+        train_im_dict_list = [self.image_dict_list[i] for i in train_im_inds]
+        val_im_dict_list = [self.image_dict_list[i] for i in val_im_inds]
+
+        train_im_ids = [d['id'] for d in train_im_dict_list]
+        val_im_ids = [d['id'] for d in val_im_dict_list]
+
+        train_ann_inds = [j for j, ins in enumerate(self.annotation_dict_list) if ins['image_id'] in train_im_ids]
+        val_ann_inds = [j for j, ins in enumerate(self.annotation_dict_list) if ins['image_id'] in val_im_ids]
+
+        train_ann_dict_list = [self.annotation_dict_list[i] for i in train_ann_inds]
+        val_ann_dict_list = [self.annotation_dict_list[i] for i in val_ann_inds]
+
+        self.save(ann_path=self.ann_path.replace('.json', '_bg_train.json'), images=train_im_dict_list,
+                  annotations=train_ann_dict_list, categories=self.categories)
+        self.save(ann_path=self.ann_path.replace('.json', '_bg_val.json'), images=val_im_dict_list,
+                  annotations=val_ann_dict_list, categories=self.categories)
+
+        # # replace background and save
+        # num_im = len(select_im_inds)
+        # for j,i in enumerate(select_im_inds):
+        #     im_path = os.path.join(im_dir, self.image_dict_list[i]['file_name'])
+        #     im = cv2.imread(im_path)[:,:,::-1]
+        #     h, w = im.shape[:2]
+        #     fg_mask = np.zeros((h,w), 'uint8')
+        #     for ins in self.annotation_dict_list:
+        #         if ins['image_id'] != self.image_dict_list[i]['id']: continue
+        #         segm = ins['segmentation']
+        #         mask = self.segmToMask(segm, h, w)
+        #         fg_mask = np.bitwise_or(fg_mask, mask)
+        #         # cv2.imshow('im', im)
+        #         # cv2.imshow('mask', 255 * mask.astype('uint8'))
+        #         # cv2.imshow('fg_mask', 255 * fg_mask.astype('uint8'))
+        #         # cv2.waitKey()
+        #     im = ImageProcessing().replace_background(im,fg_mask, background_im)
+        #     cv2.imwrite(im_path, im[:,:,::-1])
+        #     print(f'[{j}/{num_im}] {im_path} saved')
+        #     # cv2.imshow('im', im[:,:,::-1])
+        #     # cv2.imshow('fg_mask', 255 * fg_mask.astype('uint8'))
+        #     # cv2.waitKey()
 
 
 class CocoGui(DetGuiObj):
@@ -899,8 +945,11 @@ def concat_cocos(ann_files, im_dirs, out_file):
 
     print(f'{out_file} saved...')
 
-
-
+def replace_background(ann_file, im_dir, background_path,div=[2,1], select_stride=None):
+    coco = CocoUtils(ann_file)
+    background = cv2.imread(background_path)[:,:,::-1]
+    select_inds = np.arange(0, len(coco.image_dict_list),select_stride) if select_stride is not None else None
+    coco.replace_background(im_dir,background, select_im_inds=select_inds,div=div)
 
 
 
